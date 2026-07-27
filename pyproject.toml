@@ -1,0 +1,24 @@
+[project]
+name = "botcask"
+version = "0.1.0"
+description = "BotCask — a small Python framework for building bots from declarative files."
+readme = "README.md"
+authors = [
+    { name = "Joseano Sousa", email = "joseanodev@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "jinja2>=3.1.6",
+    "pydantic>=2.13.4",
+    "pyyaml>=6.0.3",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.32,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.0",
+]
