@@ -88,3 +88,13 @@ response:
     result = bot.execute("start", context={"user": {"first_name": "Joseano"}})
 
     assert result.text == "Hello, Joseano!"
+
+
+def test_bot_rejects_command_names_that_escape_commands_dir(tmp_path: Path) -> None:
+    commands_dir = tmp_path / "commands"
+    commands_dir.mkdir()
+
+    bot = Bot(commands_dir=commands_dir)
+
+    with pytest.raises(InvalidCommandError):
+        bot.execute("../outside")
