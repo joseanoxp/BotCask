@@ -113,14 +113,18 @@ response:
     assert result.text == "Hello from the default directory!"
 
 
-def test_bot_rejects_command_names_that_escape_commands_dir(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "command_name",
+    ["", ".", "..", ".hidden", "../outside", "nested/start", r"nested\start"],
+)
+def test_bot_rejects_invalid_command_names(tmp_path: Path, command_name: str) -> None:
     commands_dir = tmp_path / "commands"
     commands_dir.mkdir()
 
     bot = Bot(commands_dir=commands_dir)
 
-    with pytest.raises(InvalidCommandError):
-        bot.execute("../outside")
+    with pytest.raises(InvalidCommandError, match="Invalid command name"):
+        bot.execute(command_name)
 
 
 def test_bot_rejects_missing_command_with_a_clear_error(tmp_path: Path) -> None:
