@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
 from botcask import (
     Bot,
@@ -54,8 +55,12 @@ response:
         encoding="utf-8",
     )
 
-    with pytest.raises(InvalidCommandError, match="Invalid command"):
+    with pytest.raises(
+        InvalidCommandError, match="Invalid command: malformed YAML"
+    ) as exc_info:
         execute_command(command_path, context={})
+
+    assert isinstance(exc_info.value.__cause__, yaml.YAMLError)
 
 
 def test_command_uses_response_defined_in_yaml(tmp_path: Path) -> None:
