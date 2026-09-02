@@ -23,7 +23,7 @@ def execute_command(
     try:
         content = yaml.safe_load(command_path.read_text(encoding="utf-8"))
     except yaml.YAMLError as exc:
-        raise InvalidCommandError(f"Invalid command YAML: {exc}") from exc
+        raise InvalidCommandError(f"Invalid command: malformed YAML: {exc}") from exc
 
     enviroment = Environment(undefined=StrictUndefined)
 
