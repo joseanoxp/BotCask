@@ -44,6 +44,20 @@ def test_rejects_command_without_response_text_defined_in_yaml(tmp_path: Path) -
         execute_command(command_path, context={})
 
 
+def test_rejects_malformed_yaml_as_invalid_command(tmp_path: Path) -> None:
+    command_path = tmp_path / "start.yml"
+    command_path.write_text(
+        """
+response:
+  text: "Welcome,
+    """.strip(),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(InvalidCommandError, match="Invalid command"):
+        execute_command(command_path, context={})
+
+
 def test_command_uses_response_defined_in_yaml(tmp_path: Path) -> None:
     command_path = tmp_path / "start.yml"
     command_path.write_text(

@@ -20,7 +20,10 @@ def execute_command(
 ) -> CommandResult:
     command_path = Path(path)
 
-    content = yaml.safe_load(command_path.read_text(encoding="utf-8"))
+    try:
+        content = yaml.safe_load(command_path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        raise InvalidCommandError(f"Invalid command YAML: {exc}") from exc
 
     enviroment = Environment(undefined=StrictUndefined)
 
