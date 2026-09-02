@@ -6,7 +6,7 @@ from ._execution import CommandResult, execute_command
 
 
 class Bot:
-    def __init__(self, *, commands_dir: str | Path) -> None:
+    def __init__(self, *, commands_dir: str | Path = "commands") -> None:
         self.commands_dir = Path(commands_dir).resolve()
 
     def execute(

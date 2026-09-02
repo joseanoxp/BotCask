@@ -95,6 +95,24 @@ response:
     assert result.text == "Hello, Joseano!"
 
 
+def test_bot_uses_commands_directory_by_default(tmp_path: Path, monkeypatch) -> None:
+    commands_dir = tmp_path / "commands"
+    commands_dir.mkdir()
+
+    (commands_dir / "start.yml").write_text(
+        """
+response:
+  text: "Hello from the default directory!"
+""".strip(),
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = Bot().execute("start")
+
+    assert result.text == "Hello from the default directory!"
+
+
 def test_bot_rejects_command_names_that_escape_commands_dir(tmp_path: Path) -> None:
     commands_dir = tmp_path / "commands"
     commands_dir.mkdir()
