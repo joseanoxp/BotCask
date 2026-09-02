@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 import yaml
 from jinja2 import UndefinedError
+from pydantic import ValidationError
 
 from botcask import CommandRenderError, InvalidCommandError, execute_command
 
@@ -64,8 +65,11 @@ def test_rejects_response_with_invalid_contract(tmp_path: Path, content: str) ->
     command_path = tmp_path / "start.yml"
     command_path.write_text(content.strip(), encoding="utf-8")
 
-    with pytest.raises(InvalidCommandError, match="Invalid command"):
+    with pytest.raises(InvalidCommandError, match="Invalid command") as exc_info:
         execute_command(command_path, context={})
+
+    assert str(command_path.resolve()) in str(exc_info.value)
+    assert isinstance(exc_info.value.__cause__, ValidationError)
 
 
 def test_rejects_malformed_yaml_as_invalid_command(tmp_path: Path) -> None:
@@ -78,11 +82,10 @@ response:
         encoding="utf-8",
     )
 
-    with pytest.raises(
-        InvalidCommandError, match="Invalid command: malformed YAML"
-    ) as exc_info:
+    with pytest.raises(InvalidCommandError, match="malformed YAML") as exc_info:
         execute_command(command_path, context={})
 
+    assert str(command_path.resolve()) in str(exc_info.value)
     assert isinstance(exc_info.value.__cause__, yaml.YAMLError)
 
 
@@ -118,6 +121,7 @@ response:
     ) as exc_info:
         execute_command(command_path, context={})
 
+    assert str(command_path.resolve()) in str(exc_info.value)
     assert isinstance(exc_info.value.__cause__, UndefinedError)
 
 
