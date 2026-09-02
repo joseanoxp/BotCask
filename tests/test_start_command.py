@@ -2,7 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from botcask import Bot, InvalidCommandError, execute_command
+from botcask import (
+    Bot,
+    CommandNotFoundError,
+    InvalidCommandError,
+    execute_command,
+)
 
 
 def test_command_renders_variables_from_context(tmp_path: Path) -> None:
@@ -98,3 +103,16 @@ def test_bot_rejects_command_names_that_escape_commands_dir(tmp_path: Path) -> N
 
     with pytest.raises(InvalidCommandError):
         bot.execute("../outside")
+
+
+def test_bot_rejects_missing_command_with_a_clear_error(tmp_path: Path) -> None:
+    commands_dir = tmp_path / "commands"
+    commands_dir.mkdir()
+
+    bot = Bot(commands_dir=commands_dir)
+
+    with pytest.raises(
+        CommandNotFoundError,
+        match=r"Command 'missing' not found in .+commands",
+    ):
+        bot.execute("missing")
