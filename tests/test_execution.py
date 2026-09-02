@@ -41,6 +41,33 @@ def test_rejects_command_without_response_text_defined_in_yaml(tmp_path: Path) -
         execute_command(command_path, context={})
 
 
+@pytest.mark.parametrize(
+    "content",
+    [
+        """
+response:
+  text: 42
+""",
+        """
+response:
+  text: "Hello!"
+  keyboard: []
+""",
+        """
+response:
+  text: "Hello!"
+metadata: {}
+""",
+    ],
+)
+def test_rejects_response_with_invalid_contract(tmp_path: Path, content: str) -> None:
+    command_path = tmp_path / "start.yml"
+    command_path.write_text(content.strip(), encoding="utf-8")
+
+    with pytest.raises(InvalidCommandError, match="Invalid command"):
+        execute_command(command_path, context={})
+
+
 def test_rejects_malformed_yaml_as_invalid_command(tmp_path: Path) -> None:
     command_path = tmp_path / "start.yml"
     command_path.write_text(

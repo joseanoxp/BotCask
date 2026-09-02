@@ -14,3 +14,13 @@ print(result.text)
 
 By default, `Bot` discovers commands in the `commands/` directory. A custom
 directory can be provided with `Bot(commands_dir="path/to/commands")`.
+
+Commands currently use this contract:
+
+```yaml
+response:
+  text: "Hello, {{ user.first_name }}!"
+```
+
+`response.text` is required and must be a string. Unknown fields and invalid
+values are rejected.
