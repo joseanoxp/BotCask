@@ -2,10 +2,12 @@ from pathlib import Path
 
 import pytest
 import yaml
+from jinja2 import UndefinedError
 
 from botcask import (
     Bot,
     CommandNotFoundError,
+    CommandRenderError,
     InvalidCommandError,
     execute_command,
 )
@@ -76,6 +78,26 @@ def test_command_uses_response_defined_in_yaml(tmp_path: Path) -> None:
     result = execute_command(command_path, context={"user": {"first_name": "Alice"}})
 
     assert result.text == "Welcome, Alice!"
+
+
+def test_rejects_missing_template_context_with_a_clear_error(
+    tmp_path: Path,
+) -> None:
+    command_path = tmp_path / "start.yml"
+    command_path.write_text(
+        """
+response:
+  text: "Welcome, {{ user.first_name }}!"
+""".strip(),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(
+        CommandRenderError, match="Failed to render command"
+    ) as exc_info:
+        execute_command(command_path, context={})
+
+    assert isinstance(exc_info.value.__cause__, UndefinedError)
 
 
 @pytest.mark.parametrize(

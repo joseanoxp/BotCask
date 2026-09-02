@@ -4,3 +4,7 @@ class InvalidCommandError(ValueError):
 
 class CommandNotFoundError(FileNotFoundError):
     """Raised when a named command does not exist."""
+
+
+class CommandRenderError(ValueError):
+    """Raised when a command cannot be rendered from the provided context."""

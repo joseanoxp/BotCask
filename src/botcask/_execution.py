@@ -3,11 +3,11 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from jinja2 import Environment, StrictUndefined
+from jinja2 import Environment, StrictUndefined, UndefinedError
 from pydantic import ValidationError
 
 from ._contracts import CommandSpec
-from ._errors import InvalidCommandError
+from ._errors import CommandRenderError, InvalidCommandError
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,6 +34,9 @@ def execute_command(
 
     template = enviroment.from_string(command.response.text)
 
-    text = template.render(context or {})
+    try:
+        text = template.render(context or {})
+    except UndefinedError as exc:
+        raise CommandRenderError(f"Failed to render command: {exc}") from exc
 
     return CommandResult(text=text)
