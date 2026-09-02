@@ -78,11 +78,10 @@ response:
         encoding="utf-8",
     )
 
-    with pytest.raises(
-        InvalidCommandError, match="Invalid command: malformed YAML"
-    ) as exc_info:
+    with pytest.raises(InvalidCommandError, match="Invalid command") as exc_info:
         execute_command(command_path, context={})
 
+    assert str(command_path.resolve()) in str(exc_info.value)
     assert isinstance(exc_info.value.__cause__, yaml.YAMLError)
 
 
@@ -118,6 +117,7 @@ response:
     ) as exc_info:
         execute_command(command_path, context={})
 
+    assert str(command_path.resolve()) in str(exc_info.value)
     assert isinstance(exc_info.value.__cause__, UndefinedError)
 
 
