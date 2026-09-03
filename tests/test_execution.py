@@ -34,6 +34,23 @@ response:
     assert result.text == "Welcome to BotCask, Alice!"
 
 
+def test_command_renders_without_context_when_template_has_no_variables(
+    tmp_path: Path,
+) -> None:
+    command_path = tmp_path / "start.yml"
+    command_path.write_text(
+        """
+response:
+  text: "Welcome to BotCask!"
+""".strip(),
+        encoding="utf-8",
+    )
+
+    result = execute_command(command_path)
+
+    assert result.text == "Welcome to BotCask!"
+
+
 def test_rejects_missing_command_file_with_a_clear_error(tmp_path: Path) -> None:
     command_path = tmp_path / "missing.yml"
 
