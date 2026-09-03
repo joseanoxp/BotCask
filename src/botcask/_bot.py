@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 
-from ._errors import CommandNotFoundError, InvalidCommandError
+from ._errors import InvalidCommandError
 from ._execution import CommandResult, execute_command
 
 
@@ -24,10 +24,5 @@ class Bot:
         command_path = (self.commands_dir / f"{command_name}.yml").resolve()
         if command_path.parent != self.commands_dir:
             raise InvalidCommandError("Invalid command name")
-
-        if not command_path.is_file():
-            raise CommandNotFoundError(
-                f"Command {command_name!r} not found in {self.commands_dir}"
-            )
 
         return execute_command(command_path, context=context)

@@ -64,6 +64,6 @@ def test_bot_rejects_missing_command_with_a_clear_error(tmp_path: Path) -> None:
 
     with pytest.raises(
         CommandNotFoundError,
-        match=r"Command 'missing' not found in .+commands",
+        match=r"Command file .+commands/missing\.yml not found",
     ):
         bot.execute("missing")
