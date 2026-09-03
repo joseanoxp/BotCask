@@ -15,8 +15,15 @@ from ._errors import (
 
 
 @dataclass(frozen=True, slots=True)
+class CommandAction:
+    label: str
+    command: str
+
+
+@dataclass(frozen=True, slots=True)
 class CommandResult:
     text: str
+    actions: tuple[CommandAction, ...] = ()
 
 
 def execute_command(
@@ -49,4 +56,9 @@ def execute_command(
             f"Failed to render command {command_path}: {exc}"
         ) from exc
 
-    return CommandResult(text=text)
+    actions = tuple(
+        CommandAction(label=action.label, command=action.command)
+        for action in command.response.actions
+    )
+
+    return CommandResult(text=text, actions=actions)

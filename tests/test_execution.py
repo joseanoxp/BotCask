@@ -6,6 +6,7 @@ from jinja2 import UndefinedError
 from pydantic import ValidationError
 
 from botcask import (
+    CommandAction,
     CommandNotFoundError,
     CommandRenderError,
     InvalidCommandError,
@@ -136,6 +137,77 @@ def test_command_uses_response_defined_in_yaml(tmp_path: Path) -> None:
     result = execute_command(command_path, context={"user": {"first_name": "Alice"}})
 
     assert result.text == "Welcome, Alice!"
+    assert result.actions == ()
+
+
+def test_command_returns_response_actions(tmp_path: Path) -> None:
+    command_path = tmp_path / "start.yml"
+    command_path.write_text(
+        """
+response:
+  text: "Choose the next step"
+  actions:
+    - label: "Show help"
+      command: "help"
+    - label: "Start again"
+      command: "start"
+""".strip(),
+        encoding="utf-8",
+    )
+
+    result = execute_command(command_path)
+
+    assert result.text == "Choose the next step"
+    assert result.actions == (
+        CommandAction(label="Show help", command="help"),
+        CommandAction(label="Start again", command="start"),
+    )
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        """
+response:
+  text: "Choose"
+  actions:
+    - command: "help"
+""",
+        """
+response:
+  text: "Choose"
+  actions:
+    - label: "Help"
+      command: "../help"
+""",
+        """
+response:
+  text: "Choose"
+  actions:
+    - label: 42
+      command: "help"
+""",
+        """
+response:
+  text: "Choose"
+  actions:
+    - label: "Help"
+      command: "help"
+      payload: {}
+""",
+    ],
+)
+def test_rejects_response_actions_with_invalid_contract(
+    tmp_path: Path, content: str
+) -> None:
+    command_path = tmp_path / "start.yml"
+    command_path.write_text(content.strip(), encoding="utf-8")
+
+    with pytest.raises(InvalidCommandError, match="Invalid command") as exc_info:
+        execute_command(command_path)
+
+    assert str(command_path.resolve()) in str(exc_info.value)
+    assert isinstance(exc_info.value.__cause__, ValidationError)
 
 
 def test_rejects_missing_template_context_with_a_clear_error(
