@@ -15,6 +15,13 @@ print(result.text)
 By default, `Bot` discovers commands in the `commands/` directory. A custom
 directory can be provided with `Bot(commands_dir="path/to/commands")`.
 
+Command names map directly to YAML files:
+
+```text
+commands/start.yml -> bot.execute("start")
+commands/help.yml  -> bot.execute("help")
+```
+
 Commands currently use this contract:
 
 ```yaml
