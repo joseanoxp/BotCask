@@ -27,10 +27,21 @@ Commands currently use this contract:
 ```yaml
 response:
   text: "Hello, {{ user.first_name }}!"
+  actions:
+    - label: "Show help"
+      command: "help"
 ```
 
-`response.text` is required and must be a string. Unknown fields and invalid
-values are rejected.
+`response.text` is required and must be a string. `response.actions` is
+optional and contains platform-agnostic actions with a `label` and a command
+name. Unknown fields and invalid values are rejected.
+
+The public result exposes the rendered text and actions:
+
+```python
+print(result.text)
+print(result.actions)
+```
 
 ## Context
 

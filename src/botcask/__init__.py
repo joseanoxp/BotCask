@@ -4,10 +4,11 @@ from ._errors import (
     CommandRenderError,
     InvalidCommandError,
 )
-from ._execution import CommandResult, execute_command
+from ._execution import CommandAction, CommandResult, execute_command
 
 __all__ = (
     "Bot",
+    "CommandAction",
     "CommandNotFoundError",
     "CommandRenderError",
     "CommandResult",
