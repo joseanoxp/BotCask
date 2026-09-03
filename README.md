@@ -34,10 +34,11 @@ from botcask import CommandNotFoundError, CommandRenderError, InvalidCommandErro
 ```
 
 - `CommandNotFoundError`: raised when the command file does not exist.
-- `InvalidCommandError`: raised when the command file is not valid YAML or does
-  not match the supported command contract.
-- `CommandRenderError`: raised when a valid command cannot be rendered with the
-  provided context, such as when a template variable is missing.
+- `InvalidCommandError`: raised when the command name is invalid (empty,
+  dot-prefixed, or path-like), when the command file is not valid YAML, or when
+  it does not match the supported command contract.
+- `CommandRenderError`: raised when rendering fails because the provided context
+  is missing values referenced by the template.
 
 Errors include the command file path when available, so failures remain
 actionable as projects add more command files.
