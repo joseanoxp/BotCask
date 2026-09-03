@@ -58,6 +58,10 @@ future CI or branch-protection checks should be treated as required when the
 repository enables them, but they are not a reason to add process before it
 helps validate the product.
 
+The optional GitHub Actions quality workflow mirrors these local commands for
+pull requests and pushes to `main`. Branch protection can make those checks
+required later, when the project is ready for stricter automation.
+
 Prefer test-first development for behavior changes:
 
 1. Add a focused test that describes the desired behavior.
