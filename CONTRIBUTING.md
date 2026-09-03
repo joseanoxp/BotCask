@@ -27,6 +27,22 @@ There may be no separate reviewer while the project is small. In that case,
 the author should perform a self-review of the diff and confirm that the
 relevant tests pass.
 
+## Issues and milestones
+
+Use Issues as the source of truth for planned work, bugs, and focused
+improvements. Give each Issue a descriptive title and enough context for
+someone else to understand the goal without relying on chat history.
+
+Keep Issues small and actionable. Include the problem or goal, why it matters,
+the intended scope, acceptance criteria, and relevant links. Use a Markdown
+task list to break down work when needed; split larger efforts into related
+Issues instead of creating one broad Issue.
+
+Use simple labels to distinguish the kind of work, such as `feature`, `bug`,
+`test`, `documentation`, or `architecture`. Use a Milestone to group Issues
+and pull requests that contribute to one concrete foundation goal or release.
+Add dependencies or links when the order between tasks matters.
+
 ## Development workflow
 
 Use `uv` for the Python environment and project commands:

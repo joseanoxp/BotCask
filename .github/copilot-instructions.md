@@ -18,6 +18,11 @@ without a concrete requirement.
   `Refs #<pull-request-number>` in the commit body.
 - When no reviewer is available, perform a careful self-review of the diff.
 - Never rewrite shared history or use destructive git commands.
+- Use Issues as the source of truth for planned work and keep them focused.
+- Link related Issues and PRs, use simple labels, and group related work in a
+  Milestone when it contributes to one concrete project goal.
+- Break larger work into smaller Issues with explicit acceptance criteria and
+  dependencies instead of creating broad, ambiguous tasks.
 
 ## Implementation expectations
 
