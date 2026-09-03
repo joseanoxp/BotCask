@@ -22,7 +22,17 @@ commands/start.yml -> bot.execute("start")
 commands/help.yml  -> bot.execute("help")
 ```
 
-Commands currently use this contract:
+Commands can use the minimal Telegram-shaped message contract:
+
+```yaml
+message:
+  text: "Hello, {{ user.first_name }}!"
+```
+
+`message.text` is required and must be a string. This is the preferred
+declarative shape because Telegram is BotCask's primary provider.
+
+The previous response contract is still supported during the transition:
 
 ```yaml
 response:
@@ -32,9 +42,10 @@ response:
       command: "help"
 ```
 
-`response.text` is required and must be a string. `response.actions` is
-optional and contains platform-agnostic actions with a `label` and a command
-name. Unknown fields and invalid values are rejected.
+A command must define exactly one output: either `message` or `response`.
+`response.text` is required and must be a string. `response.actions` is optional
+and contains platform-agnostic actions with a `label` and a command name.
+Unknown fields and invalid values are rejected.
 
 The public result exposes the rendered text and actions:
 
@@ -61,7 +72,7 @@ result = bot.execute(
 Nested dictionaries can be referenced from YAML templates with dot notation:
 
 ```yaml
-response:
+message:
   text: "Welcome to {{ chat.title }}, {{ user.first_name }}!"
 ```
 
