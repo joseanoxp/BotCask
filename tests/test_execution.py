@@ -159,6 +159,7 @@ message:
 @pytest.mark.parametrize(
     "content",
     [
+        "{}",
         """
 message: {}
 """,
