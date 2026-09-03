@@ -7,7 +7,11 @@ from jinja2 import Environment, StrictUndefined, UndefinedError
 from pydantic import ValidationError
 
 from ._contracts import CommandSpec
-from ._errors import CommandRenderError, InvalidCommandError
+from ._errors import (
+    CommandNotFoundError,
+    CommandRenderError,
+    InvalidCommandError,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -22,6 +26,8 @@ def execute_command(
 
     try:
         content = yaml.safe_load(command_path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise CommandNotFoundError(f"Command file {command_path} not found") from exc
     except yaml.YAMLError as exc:
         raise InvalidCommandError(
             f"Invalid command {command_path}: malformed YAML: {exc}"

@@ -5,7 +5,12 @@ import yaml
 from jinja2 import UndefinedError
 from pydantic import ValidationError
 
-from botcask import CommandRenderError, InvalidCommandError, execute_command
+from botcask import (
+    CommandNotFoundError,
+    CommandRenderError,
+    InvalidCommandError,
+    execute_command,
+)
 
 
 def test_command_renders_variables_from_context(tmp_path: Path) -> None:
@@ -27,6 +32,18 @@ response:
     )
 
     assert result.text == "Welcome to BotCask, Alice!"
+
+
+def test_rejects_missing_command_file_with_a_clear_error(tmp_path: Path) -> None:
+    command_path = tmp_path / "missing.yml"
+
+    with pytest.raises(
+        CommandNotFoundError,
+        match=rf"Command file {command_path} not found",
+    ) as exc_info:
+        execute_command(command_path, context={})
+
+    assert isinstance(exc_info.value.__cause__, FileNotFoundError)
 
 
 def test_rejects_command_without_response_text_defined_in_yaml(tmp_path: Path) -> None:
