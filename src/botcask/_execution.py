@@ -47,7 +47,10 @@ def execute_command(
     except ValidationError as exc:
         raise InvalidCommandError(f"Invalid command {command_path}: {exc}") from exc
 
-    template = enviroment.from_string(command.response.text)
+    text_template = (
+        command.message.text if command.message is not None else command.response.text
+    )
+    template = enviroment.from_string(text_template)
 
     try:
         text = template.render(context or {})
@@ -56,9 +59,11 @@ def execute_command(
             f"Failed to render command {command_path}: {exc}"
         ) from exc
 
-    actions = tuple(
-        CommandAction(label=action.label, command=action.command)
-        for action in command.response.actions
-    )
+    actions = ()
+    if command.response is not None:
+        actions = tuple(
+            CommandAction(label=action.label, command=action.command)
+            for action in command.response.actions
+        )
 
     return CommandResult(text=text, actions=actions)

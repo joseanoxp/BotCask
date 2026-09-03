@@ -140,6 +140,58 @@ def test_command_uses_response_defined_in_yaml(tmp_path: Path) -> None:
     assert result.actions == ()
 
 
+def test_command_uses_telegram_message_text_defined_in_yaml(tmp_path: Path) -> None:
+    command_path = tmp_path / "start.yml"
+    command_path.write_text(
+        """
+message:
+  text: "Welcome, {{ user.first_name }}!"
+""".strip(),
+        encoding="utf-8",
+    )
+
+    result = execute_command(command_path, context={"user": {"first_name": "Alice"}})
+
+    assert result.text == "Welcome, Alice!"
+    assert result.actions == ()
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        """
+message: {}
+""",
+        """
+message:
+  text: 42
+""",
+        """
+message:
+  text: "Hello!"
+  reply_markup: {}
+""",
+        """
+message:
+  text: "Hello!"
+response:
+  text: "Hello!"
+""",
+    ],
+)
+def test_rejects_telegram_message_with_invalid_contract(
+    tmp_path: Path, content: str
+) -> None:
+    command_path = tmp_path / "start.yml"
+    command_path.write_text(content.strip(), encoding="utf-8")
+
+    with pytest.raises(InvalidCommandError, match="Invalid command") as exc_info:
+        execute_command(command_path)
+
+    assert str(command_path.resolve()) in str(exc_info.value)
+    assert isinstance(exc_info.value.__cause__, ValidationError)
+
+
 def test_command_returns_response_actions(tmp_path: Path) -> None:
     command_path = tmp_path / "start.yml"
     command_path.write_text(
