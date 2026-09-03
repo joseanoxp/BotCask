@@ -25,6 +25,31 @@ response:
 `response.text` is required and must be a string. Unknown fields and invalid
 values are rejected.
 
+## Context
+
+Templates are rendered with the optional `context` dictionary passed to
+`execute_command()` or `Bot.execute()`:
+
+```python
+result = bot.execute(
+    "start",
+    context={
+        "user": {"first_name": "Joseano"},
+        "chat": {"title": "BotCask"},
+    },
+)
+```
+
+Nested dictionaries can be referenced from YAML templates with dot notation:
+
+```yaml
+response:
+  text: "Welcome to {{ chat.title }}, {{ user.first_name }}!"
+```
+
+The context may be omitted when the template does not reference variables.
+Missing referenced values raise `CommandRenderError`.
+
 ## Runtime errors
 
 BotCask exposes distinct public errors for the main command execution failures:
