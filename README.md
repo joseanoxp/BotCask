@@ -24,3 +24,20 @@ response:
 
 `response.text` is required and must be a string. Unknown fields and invalid
 values are rejected.
+
+## Runtime errors
+
+BotCask exposes distinct public errors for the main command execution failures:
+
+```python
+from botcask import CommandNotFoundError, CommandRenderError, InvalidCommandError
+```
+
+- `CommandNotFoundError`: raised when the command file does not exist.
+- `InvalidCommandError`: raised when the command file is not valid YAML or does
+  not match the supported command contract.
+- `CommandRenderError`: raised when a valid command cannot be rendered with the
+  provided context, such as when a template variable is missing.
+
+Errors include the command file path when available, so failures remain
+actionable as projects add more command files.
