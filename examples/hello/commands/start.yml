@@ -1,2 +1,2 @@
-response:
+message:
   text: "Hello, {{ user.first_name }}!"
