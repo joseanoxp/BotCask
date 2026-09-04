@@ -53,6 +53,25 @@ print(result.text)
 print(result.reply_markup.inline_keyboard[0][0].callback_data)
 ```
 
+## Telegram provider boundary
+
+The runtime is deliberately split from Telegram transport:
+
+1. `execute_command()` loads and validates the YAML contract.
+2. The runtime renders all templates using the supplied context.
+3. `CommandResult` carries the rendered, Telegram-shaped message data.
+4. A future `TelegramProvider` will translate `CommandResult` into Telegram
+   Bot API requests.
+
+The provider boundary starts at `CommandResult`. It may receive a destination
+such as a Telegram chat ID and be responsible for HTTP requests, tokens,
+retries, and transport errors. None of those concerns belong in YAML loading,
+schema validation, or template rendering.
+
+Until that provider is implemented, commands can be fully tested with local
+fixtures and contexts. No Telegram credentials, network access, webhook, or
+polling loop is required to validate the declarative runtime.
+
 ## Context
 
 Templates are rendered with the optional `context` dictionary passed to
