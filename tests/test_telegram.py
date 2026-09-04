@@ -16,6 +16,14 @@ def test_builds_text_message_payload(chat_id: int | str) -> None:
     }
 
 
+def test_strips_whitespace_from_string_chat_id() -> None:
+    result = CommandResult(text="Hello!")
+
+    payload = build_send_message_payload("  @botcask  ", result)
+
+    assert payload["chat_id"] == "@botcask"
+
+
 def test_builds_inline_keyboard_payload() -> None:
     result = CommandResult(
         text="Choose an option",
