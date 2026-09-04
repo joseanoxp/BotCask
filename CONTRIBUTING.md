@@ -12,8 +12,10 @@ validate the core idea before adding framework complexity.
    - `chore/<description>` for tooling or maintenance
 3. Keep the change focused and open a Draft Pull Request early when the work
    is still in progress.
-4. Use the pull request to describe the goal, behavior, validation steps, and
-   known limitations.
+4. Before creating or editing a pull request, read
+   `.github/pull_request_template.md`, complete each section, and preserve its
+   headings and order. This also applies when supplying the pull request body
+   through the CLI or API.
 5. Before merging, run the relevant tests locally. Automated checks are
    recommended when enabled, but they are optional while the project is
    establishing its foundation.
