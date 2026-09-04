@@ -1,4 +1,5 @@
 from ._bot import Bot
+from ._context import telegram_context
 from ._contracts import InlineKeyboardButton, InlineKeyboardMarkup
 from ._errors import (
     CommandNotFoundError,
@@ -16,4 +17,5 @@ __all__ = (
     "InlineKeyboardMarkup",
     "InvalidCommandError",
     "execute_command",
+    "telegram_context",
 )

@@ -10,6 +10,7 @@ from botcask import (
     CommandRenderError,
     InvalidCommandError,
     execute_command,
+    telegram_context,
 )
 
 
@@ -32,6 +33,83 @@ message:
     )
 
     assert result.text == "Welcome to BotCask, Alice!"
+
+
+def test_telegram_context_maps_message_update_fields() -> None:
+    context = telegram_context(
+        {
+            "update_id": 100,
+            "message": {
+                "text": "/start",
+                "caption": "A caption",
+                "from": {"id": 7, "first_name": "Alice"},
+                "chat": {"id": 8, "type": "private"},
+            },
+        }
+    )
+
+    assert context == {
+        "message": {
+            "text": "/start",
+            "caption": "A caption",
+            "from": {"id": 7, "first_name": "Alice"},
+            "chat": {"id": 8, "type": "private"},
+        },
+        "user": {"id": 7, "first_name": "Alice"},
+        "chat": {"id": 8, "type": "private"},
+    }
+
+
+def test_telegram_context_maps_callback_query_fields() -> None:
+    context = telegram_context(
+        {
+            "update_id": 101,
+            "callback_query": {
+                "id": "query-id",
+                "data": "help",
+                "from": {"id": 7, "first_name": "Alice"},
+                "message": {
+                    "caption": "Choose an option",
+                    "chat": {"id": 8, "type": "private"},
+                },
+            },
+        }
+    )
+
+    assert context["callback_query"]["data"] == "help"
+    assert context["message"]["caption"] == "Choose an option"
+    assert context["user"] == {"id": 7, "first_name": "Alice"}
+    assert context["chat"] == {"id": 8, "type": "private"}
+
+
+def test_command_renders_from_telegram_context(tmp_path: Path) -> None:
+    command_path = tmp_path / "start.yml"
+    command_path.write_text(
+        """
+message:
+  text: "{{ message.text }} from {{ user.first_name }} in {{ chat.type }}"
+""".strip(),
+        encoding="utf-8",
+    )
+
+    result = execute_command(
+        command_path,
+        context=telegram_context(
+            {
+                "message": {
+                    "text": "/start",
+                    "from": {"first_name": "Alice"},
+                    "chat": {"type": "private"},
+                }
+            }
+        ),
+    )
+
+    assert result.text == "/start from Alice in private"
+
+
+def test_telegram_context_omits_missing_update_sections() -> None:
+    assert telegram_context({"update_id": 102}) == {}
 
 
 def test_command_renders_without_context_when_template_has_no_variables(
