@@ -63,10 +63,11 @@ The runtime is deliberately split from Telegram transport:
 4. A future `TelegramProvider` will translate `CommandResult` into Telegram
    Bot API requests.
 
-The provider boundary starts at `CommandResult`. It may receive a destination
-such as a Telegram chat ID and be responsible for HTTP requests, tokens,
-retries, and transport errors. None of those concerns belong in YAML loading,
-schema validation, or template rendering.
+The provider boundary starts at `CommandResult`. The future
+`TelegramProvider` may receive a destination such as a Telegram chat ID and
+will be responsible for HTTP requests, tokens, retries, and transport errors.
+None of those concerns belong in YAML loading, schema validation, or template
+rendering.
 
 Until that provider is implemented, commands can be fully tested with local
 fixtures and contexts. No Telegram credentials, network access, webhook, or
