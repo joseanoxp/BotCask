@@ -1,4 +1,5 @@
 from ._bot import Bot
+from ._contracts import InlineKeyboardButton, InlineKeyboardMarkup
 from ._errors import (
     CommandNotFoundError,
     CommandRenderError,
@@ -11,6 +12,8 @@ __all__ = (
     "CommandNotFoundError",
     "CommandRenderError",
     "CommandResult",
+    "InlineKeyboardButton",
+    "InlineKeyboardMarkup",
     "InvalidCommandError",
     "execute_command",
 )
