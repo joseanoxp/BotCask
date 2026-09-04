@@ -33,10 +33,24 @@ message:
 values are rejected. The previous `response.text` contract is no longer
 supported because Telegram is BotCask's primary provider.
 
-The public result exposes the rendered text:
+Inline keyboards use Telegram's nested provider shape. The current subset
+requires each button to have `text` and `callback_data`:
+
+```yaml
+message:
+  text: "Choose an option"
+  reply_markup:
+    inline_keyboard:
+      - - text: "Help"
+          callback_data: "help"
+```
+
+The public result exposes the rendered text and, when configured, the
+provider-shaped inline keyboard:
 
 ```python
 print(result.text)
+print(result.reply_markup.inline_keyboard[0][0].callback_data)
 ```
 
 ## Context

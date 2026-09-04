@@ -97,6 +97,21 @@ message:
         """
 message:
   text: "Hello!"
+  reply_markup:
+    inline_keyboard:
+      - - text: "Help"
+""",
+        """
+message:
+  text: "Hello!"
+  reply_markup:
+    inline_keyboard:
+      - text: "Help"
+        callback_data: "help"
+""",
+        """
+message:
+  text: "Hello!"
   reply_markup: {}
 """,
         """
@@ -147,6 +162,57 @@ def test_command_uses_message_defined_in_yaml(tmp_path: Path) -> None:
     result = execute_command(command_path, context={"user": {"first_name": "Alice"}})
 
     assert result.text == "Welcome, Alice!"
+
+
+def test_command_exposes_telegram_inline_keyboard(tmp_path: Path) -> None:
+    command_path = tmp_path / "start.yml"
+    command_path.write_text(
+        """
+message:
+  text: "Choose an option"
+  reply_markup:
+    inline_keyboard:
+      - - text: "Help"
+          callback_data: "help"
+        - text: "Profile"
+          callback_data: "profile"
+      - - text: "About"
+          callback_data: "about"
+""".strip(),
+        encoding="utf-8",
+    )
+
+    result = execute_command(command_path)
+
+    assert result.reply_markup is not None
+    assert result.reply_markup.inline_keyboard[0][0].text == "Help"
+    assert result.reply_markup.inline_keyboard[0][1].callback_data == "profile"
+    assert result.reply_markup.inline_keyboard[1][0].text == "About"
+
+
+def test_command_renders_inline_keyboard_templates(tmp_path: Path) -> None:
+    command_path = tmp_path / "start.yml"
+    command_path.write_text(
+        """
+message:
+  text: "Choose an option"
+  reply_markup:
+    inline_keyboard:
+      - - text: "{{ option.label }}"
+          callback_data: "{{ option.command }}"
+""".strip(),
+        encoding="utf-8",
+    )
+
+    result = execute_command(
+        command_path,
+        context={"option": {"label": "Help", "command": "help"}},
+    )
+
+    assert result.reply_markup is not None
+    button = result.reply_markup.inline_keyboard[0][0]
+    assert button.text == "Help"
+    assert button.callback_data == "help"
 
 
 @pytest.mark.parametrize(

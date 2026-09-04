@@ -6,7 +6,7 @@ import yaml
 from jinja2 import Environment, StrictUndefined, UndefinedError
 from pydantic import ValidationError
 
-from ._contracts import CommandSpec
+from ._contracts import CommandSpec, InlineKeyboardMarkup
 from ._errors import (
     CommandNotFoundError,
     CommandRenderError,
@@ -17,6 +17,22 @@ from ._errors import (
 @dataclass(frozen=True, slots=True)
 class CommandResult:
     text: str
+    reply_markup: InlineKeyboardMarkup | None = None
+
+
+def _render_value(
+    value: object, template_environment: Environment, context: dict[str, Any]
+) -> object:
+    if isinstance(value, str):
+        return template_environment.from_string(value).render(context)
+    if isinstance(value, list):
+        return [_render_value(item, template_environment, context) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: _render_value(item, template_environment, context)
+            for key, item in value.items()
+        }
+    return value
 
 
 def execute_command(
@@ -40,13 +56,20 @@ def execute_command(
     except ValidationError as exc:
         raise InvalidCommandError(f"Invalid command {command_path}: {exc}") from exc
 
-    template = enviroment.from_string(command.message.text)
-
     try:
-        text = template.render(context or {})
+        rendered_command = CommandSpec.model_validate(
+            _render_value(
+                command.model_dump(),
+                enviroment,
+                context or {},
+            )
+        )
     except UndefinedError as exc:
         raise CommandRenderError(
             f"Failed to render command {command_path}: {exc}"
         ) from exc
 
-    return CommandResult(text=text)
+    return CommandResult(
+        text=rendered_command.message.text,
+        reply_markup=rendered_command.message.reply_markup,
+    )
