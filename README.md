@@ -98,6 +98,24 @@ message:
 The context may be omitted when the template does not reference variables.
 Missing referenced values raise `CommandRenderError`.
 
+Telegram updates can be mapped into this context with `telegram_context()`.
+The mapper preserves Telegram's `message` and `callback_query` objects and
+exposes the originating `from` and `chat` objects as `user` and `chat`:
+
+```python
+from botcask import telegram_context
+
+context = telegram_context(update)
+result = bot.execute("start", context=context)
+```
+
+For message updates, templates can consume `message.text` or
+`message.caption`. For callback queries, they can consume
+`callback_query.data`; `user` and `chat` are taken from the originating
+Telegram object. Missing fields remain absent, so referencing them raises
+`CommandRenderError`. The mapper is a pure local transformation and does not
+download media or make Telegram API requests.
+
 ## Runtime errors
 
 BotCask exposes distinct public errors for the main command execution failures:
