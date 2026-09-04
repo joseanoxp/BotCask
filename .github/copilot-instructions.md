@@ -13,6 +13,10 @@ without a concrete requirement.
 - Follow the GitHub Flow contract in `CONTRIBUTING.md`.
 - Work from a descriptive English branch based on `main`.
 - Keep changes focused and use Draft Pull Requests for work in progress.
+- Before creating or editing a pull request, read
+  `.github/pull_request_template.md`, complete each section, and preserve its
+  headings and order exactly, including when supplying the body through the
+  CLI or API.
 - Prefer squash merging so `main` stays linear.
 - For squash commits, use a concise conventional subject and put
   `Refs #<pull-request-number>` in the commit body.
