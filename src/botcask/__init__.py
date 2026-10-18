@@ -5,6 +5,8 @@ from ._errors import (
     CommandNotFoundError,
     CommandRenderError,
     InvalidCommandError,
+    TelegramAPIError,
+    TelegramTransportError,
 )
 from ._execution import CommandResult, execute_command
 
@@ -16,6 +18,8 @@ __all__ = (
     "InlineKeyboardButton",
     "InlineKeyboardMarkup",
     "InvalidCommandError",
+    "TelegramAPIError",
+    "TelegramTransportError",
     "execute_command",
     "telegram_context",
 )
