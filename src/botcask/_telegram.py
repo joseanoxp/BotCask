@@ -15,6 +15,8 @@ def build_send_message_payload(
     chat_id: object,
     result: CommandResult,
 ) -> dict[str, object]:
+    if not isinstance(result, CommandResult):
+        raise TypeError("result must be a CommandResult")
     if isinstance(chat_id, bool) or not isinstance(chat_id, int | str):
         raise TypeError("chat_id must be a string or integer")
     if isinstance(chat_id, str):
@@ -180,3 +182,22 @@ def send_message_request(
             "Telegram Bot API success response is missing object 'result' field"
         )
     return result
+
+
+class TelegramProvider:
+    __slots__ = ("_timeout", "_token")
+
+    def __init__(self, token: str, *, timeout: float = 10.0) -> None:
+        self._token = _validate_token(token)
+        self._timeout = _validate_timeout(timeout)
+
+    def __repr__(self) -> str:
+        return "TelegramProvider(token='<redacted>')"
+
+    def send(
+        self,
+        chat_id: int | str,
+        result: CommandResult,
+    ) -> dict[str, object]:
+        payload = build_send_message_payload(chat_id, result)
+        return send_message_request(self._token, payload, timeout=self._timeout)

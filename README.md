@@ -60,18 +60,34 @@ The runtime is deliberately split from Telegram transport:
 1. `execute_command()` loads and validates the YAML contract.
 2. The runtime renders all templates using the supplied context.
 3. `CommandResult` carries the rendered, Telegram-shaped message data.
-4. A future `TelegramProvider` will translate `CommandResult` into Telegram
-   Bot API requests.
+4. `TelegramProvider` translates `CommandResult` into a synchronous Telegram
+   Bot API `sendMessage` request.
 
-The provider boundary starts at `CommandResult`. The future
-`TelegramProvider` may receive a destination such as a Telegram chat ID and
-will be responsible for HTTP requests, tokens, retries, and transport errors.
-None of those concerns belong in YAML loading, schema validation, or template
-rendering.
+```python
+from botcask import Bot, TelegramProvider, telegram_context
 
-Until that provider is implemented, commands can be fully tested with local
-fixtures and contexts. No Telegram credentials, network access, webhook, or
-polling loop is required to validate the declarative runtime.
+bot = Bot()
+provider = TelegramProvider("123456:BOT-TOKEN")
+
+context = telegram_context(update)
+result = bot.execute("start", context=context)
+telegram_message = provider.send(context["chat"]["id"], result)
+```
+
+The provider boundary starts at `CommandResult`. `TelegramProvider` receives a
+Telegram `chat_id` (`int` or non-empty `str`) and a `CommandResult`, sends the
+rendered text and optional inline keyboard through `sendMessage` with an
+explicit timeout (`timeout=10.0` by default), and returns the decoded Telegram
+`result` dictionary without mutating `CommandResult` or exposing the bot token
+in string representations or errors.
+
+Commands can still be fully tested with local fixtures and contexts without
+Telegram credentials or network access.
+
+**MVP limitations:** `TelegramProvider` is an outbound `sendMessage` boundary
+only. Command routing, update polling, webhook servers, media uploads, callback
+query acknowledgements (`answerCallbackQuery`), async clients, and automatic
+retry loops are out of scope.
 
 ## Context
 
@@ -118,10 +134,17 @@ download media or make Telegram API requests.
 
 ## Runtime errors
 
-BotCask exposes distinct public errors for the main command execution failures:
+BotCask exposes distinct public errors for command execution and Telegram
+provider failures:
 
 ```python
-from botcask import CommandNotFoundError, CommandRenderError, InvalidCommandError
+from botcask import (
+    CommandNotFoundError,
+    CommandRenderError,
+    InvalidCommandError,
+    TelegramAPIError,
+    TelegramTransportError,
+)
 ```
 
 - `CommandNotFoundError`: raised when the command file does not exist.
@@ -130,6 +153,11 @@ from botcask import CommandNotFoundError, CommandRenderError, InvalidCommandErro
   it does not match the supported command contract.
 - `CommandRenderError`: raised when rendering fails because the provided context
   is missing values referenced by the template.
+- `TelegramAPIError`: raised when the Telegram Bot API returns `ok: false`;
+  exposes `error_code`, `description`, and `retry_after` (when returned in
+  `parameters.retry_after`) without performing automatic retries.
+- `TelegramTransportError`: raised when a Telegram Bot API request fails due to
+  network errors, timeouts, malformed JSON, or an unexpected response envelope.
 
-Errors include the command file path when available, so failures remain
-actionable as projects add more command files.
+Errors include the command file path when available and never expose the bot
+token, so failures remain safe and actionable.

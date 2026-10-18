@@ -5,16 +5,20 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable
 from email.message import Message
+from pathlib import Path
 from typing import Self
 
 import pytest
 
 from botcask import (
+    Bot,
     CommandResult,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     TelegramAPIError,
+    TelegramProvider,
     TelegramTransportError,
+    telegram_context,
 )
 from botcask._telegram import build_send_message_payload, send_message_request
 
@@ -399,3 +403,134 @@ def test_rejects_invalid_timeout(
             {"chat_id": 123456789, "text": "Hello!"},
             timeout=invalid_timeout,  # type: ignore[arg-type]
         )
+
+
+def test_telegram_provider_hides_token_in_representations() -> None:
+    token = "123456:SUPER-SECRET-TOKEN"
+    provider = TelegramProvider(token)
+
+    assert token not in repr(provider)
+    assert token not in str(provider)
+    assert not hasattr(provider, "token")
+
+
+def test_telegram_provider_sends_rendered_command_result_with_inline_keyboard(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    commands_dir = tmp_path / "commands"
+    commands_dir.mkdir()
+    (commands_dir / "start.yml").write_text(
+        "message:\n"
+        '  text: "Hello, {{ user.first_name }}!"\n'
+        "  reply_markup:\n"
+        "    inline_keyboard:\n"
+        '      - - text: "Help"\n'
+        '          callback_data: "help:{{ chat.id }}"\n',
+        encoding="utf-8",
+    )
+
+    update = {
+        "update_id": 100,
+        "message": {
+            "message_id": 1,
+            "from": {"id": 42, "first_name": "Joseano"},
+            "chat": {"id": 987654321, "type": "private"},
+            "text": "/start",
+        },
+    }
+    context = telegram_context(update)
+    bot = Bot(commands_dir=commands_dir)
+    result = bot.execute("start", context=context)
+
+    captured: dict[str, object] = {}
+
+    def handler(
+        request: urllib.request.Request,
+        timeout: float,
+    ) -> _FakeHTTPResponse:
+        captured["url"] = request.full_url
+        captured["body"] = json.loads((request.data or b"").decode("utf-8"))
+        captured["timeout"] = timeout
+        return _FakeHTTPResponse(
+            b'{"ok": true, "result": {"message_id": 77, "chat": {"id": 987654321}}}'
+        )
+
+    _stub_urlopen(monkeypatch, handler)
+
+    provider = TelegramProvider("123456:BOT-TOKEN", timeout=7.5)
+    telegram_message = provider.send(context["chat"]["id"], result)
+
+    assert telegram_message == {"message_id": 77, "chat": {"id": 987654321}}
+    assert result == CommandResult(
+        text="Hello, Joseano!",
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="Help", callback_data="help:987654321")]
+            ]
+        ),
+    )
+    assert captured == {
+        "url": "https://api.telegram.org/bot123456:BOT-TOKEN/sendMessage",
+        "body": {
+            "chat_id": 987654321,
+            "text": "Hello, Joseano!",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [{"text": "Help", "callback_data": "help:987654321"}]
+                ]
+            },
+        },
+        "timeout": 7.5,
+    }
+
+
+@pytest.mark.parametrize("invalid_result", [None, "Hello!", {"text": "Hello!"}])
+def test_telegram_provider_rejects_non_command_result(
+    invalid_result: object,
+) -> None:
+    provider = TelegramProvider("123456:BOT-TOKEN")
+
+    with pytest.raises(TypeError, match="result must be a CommandResult"):
+        provider.send(123456789, invalid_result)  # type: ignore[arg-type]
+
+
+def test_telegram_provider_rejects_invalid_token_without_exposing_value() -> None:
+    token = "123456:secret/invalid"
+
+    with pytest.raises(ValueError) as exc_info:
+        TelegramProvider(token)
+
+    _assert_token_not_exposed(exc_info.value, token)
+
+
+def test_telegram_provider_propagates_api_and_transport_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    token = "123456:PROVIDER-SECRET"
+    provider = TelegramProvider(token)
+    result = CommandResult(text="Hello!")
+
+    _stub_urlopen(
+        monkeypatch,
+        lambda _req, _timeout: _FakeHTTPResponse(
+            b'{"ok": false, "error_code": 403, "description": "Forbidden: bot was blocked by the user"}'
+        ),
+    )
+    with pytest.raises(TelegramAPIError) as api_exc_info:
+        provider.send(123456789, result)
+
+    assert api_exc_info.value.error_code == 403
+    _assert_token_not_exposed(api_exc_info.value, token)
+
+    def raise_timeout(
+        _request: urllib.request.Request,
+        _timeout: float,
+    ) -> _FakeHTTPResponse:
+        raise TimeoutError("timed out")
+
+    _stub_urlopen(monkeypatch, raise_timeout)
+    with pytest.raises(TelegramTransportError) as transport_exc_info:
+        provider.send(123456789, result)
+
+    _assert_token_not_exposed(transport_exc_info.value, token)

@@ -9,6 +9,7 @@ from ._errors import (
     TelegramTransportError,
 )
 from ._execution import CommandResult, execute_command
+from ._telegram import TelegramProvider
 
 __all__ = (
     "Bot",
@@ -19,6 +20,7 @@ __all__ = (
     "InlineKeyboardMarkup",
     "InvalidCommandError",
     "TelegramAPIError",
+    "TelegramProvider",
     "TelegramTransportError",
     "execute_command",
     "telegram_context",
