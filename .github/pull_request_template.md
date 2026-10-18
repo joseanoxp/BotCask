@@ -1,19 +1,18 @@
-## What changed
+## Summary
 
-<!-- Describe the behavior or capability added, changed, or fixed. -->
+<!-- Pick the smallest visual (diagram, diff-sketch, call tree, or file tree) that makes the change clear. -->
 
-## Why
+## Evidence
 
-<!-- Explain the reason for this change and the problem it addresses. -->
+- **Before:** <!-- screenshot/output/failing test run -->
+  **After:** <!-- screenshot/output/passing test run -->
 
-## Validation
+## Merge Danger
 
-<!-- List the validation performed. The test suite is the primary gate. -->
+**Door:** <!-- one-way or two-way -->
 
-- `uv run pytest -q`
-- `uv run ruff check .` *(when applicable)*
-- `uv run ruff format --check .` *(when applicable)*
+<!-- optional: description -->
 
-## Notes
+**Blast Radius:** <!-- one-word description -->
 
-<!-- Mention limitations, follow-up work, or anything reviewers should know. -->
+<!-- optional: potential ramifications of merge -->
